@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mafia Night - Ultimate Reveal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #08070b;
+            --card-width: 320px;
+            --card-height: 480px;
+            --gold: #ffd700;
+            --mafia-red: #ff2a4b;
+            --doctor-green: #00ffaa;
+            --citizen-blue: #00d9ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background: var(--bg-dark);
+            font-family: 'Tajawal', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            color: #fff;
+            position: relative;
+        }
+
+        /* Cinematic Background */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 0, 85, 0.08) 0%, rgba(0,0,0,0.95) 70%);
+            animation: pulseBg 8s ease-in-out infinite alternate;
+            z-index: 0;
+        }
+
+        @keyframes pulseBg {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        .title {
+            font-size: 2.8rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(180deg, #fff 0%, #aaa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            z-index: 2;
+        }
+
+        .title span {
+            color: var(--mafia-red);
+            -webkit-text-fill-color: var(--mafia-red);
+            text-shadow: 0 0 20px rgba(255, 42, 75, 0.6);
+        }
+
+        /* 3D Card Stage */
+        .stage {
+            perspective: 1200px;
+            width: var(--card-width);
+            height: var(--card-height);
+            z-index: 2;
+        }
+
+        .card-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .card-container.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 20px rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Front Face (Card Cover) */
+        .card-front {
+            background: #121018;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-image: radial-gradient(circle at 50% 50%, #1f1b2d 0%, #0a090e 100%);
+        }
+
+        .card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 24px;
+            transition: transform 0.5s ease;
+        }
+
+        .card-container:hover .card-front img {
+            transform: scale(1.03);
+        }
+
+        /* Back Face (Character Reveal) */
+        .card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(160deg, #181524 0%, #0c0a12 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 20px;
+            text-align: center;
+            justify-content: space-between;
+        }
+
+        .card-back::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 50% 30%, var(--glow-color, rgba(255,255,255,0.15)) 0%, transparent 70%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .img-wrapper {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin-top: 10px;
+            z-index: 2;
+            border-radius: 50%;
+            padding: 8px;
+            background: rgba(255,255,255,0.05);
+            /* إضافة إشعاع ملون حول الإطار ودخله */
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5), 0 0 25px var(--glow-color, rgba(255,255,255,0.2));
+            transition: box-shadow 0.5s ease;
+        }
+
+        .img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            /* إشعاع مباشر على الصورة نفسها بنفس لون الشخصية */
+            filter: drop-shadow(0 0 12px var(--role-color, #fff));
+            transition: filter 0.5s ease;
+        }
+
+        .role-badge {
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 4px 16px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+            color: #aaa;
+            margin-top: 8px;
+            z-index: 2;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .role-name {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-top: 4px;
+            z-index: 2;
+            text-shadow: 0 0 20px var(--glow-color);
+            color: var(--role-color, #fff);
+        }
+
+        .role-desc {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #ddd;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px 16px;
+            border-radius: 14px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 10px;
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 2;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #2a2638 0%, #15131d 100%);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            border-color: var(--gold);
+            box-shadow: 0 15px 25px rgba(255, 215, 0, 0.2);
+            color: var(--gold);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .role-selector {
+            position: absolute;
+            bottom: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 2;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 12px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .role-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            transition: color 0.3s;
+        }
+
+        .role-btn:hover {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .hint {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #777;
+            z-index: 2;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="title">ليلة <span>المافيا</span></h1>
+
+    <div class="stage">
+        <div class="card-container" id="cardContainer" onclick="toggleCard()">
+            <!-- غلاف البطاقة الخارجي -->
+            <div class="card-face card-front">
+                <img src="cover.png" alt="Mafia Cover" id="coverImg">
+            </div>
+
+            <!-- ظهر البطاقة عند كشف الدور -->
+            <div class="card-face card-back" id="cardBack">
+                <div class="role-badge" id="roleBadge">ROLE REVEALED</div>
+                <div class="img-wrapper">
+                    <img src="crew.png" id="roleImg" alt="Character Role">
+                </div>
+                <div class="role-name" id="roleName">مواطن</div>
+                <div class="role-desc" id="roleDesc">
+                    اكتشف واخرج كل المافيا بهذه الجولة قبل ان يتم القضاء على جميع المواطنين.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="hint">انقر على البطاقة لكشف الدور السرّي</p>
+
+    <div class="controls">
+        <button class="btn" onclick="shuffleAndReveal()">
+            🎲 سحب دور جديد
+        </button>
+    </div>
+
+    <!-- أزرار المعاينة والتجربة -->
+    <div class="role-selector">
+        <span style="color: #555; font-size:0.8rem; align-self:center;">اختبار المظهر:</span>
+        <button class="role-btn" onclick="setRole(0, event)">مواطن</button>
+        <button class="role-btn" onclick="setRole(1, event)">طبيب</button>
+        <button class="role-btn" onclick="setRole(2, event)">المافيا</button>
+    </div>
+
+    <script>
+        // مصفوفة الأدوار بالأسماء الجديدة للصور وألوان الإشعاع المخصصة
+        const roles = [
+            {
+                id: 'citizen',
+                name: "مواطن",
+                badge: "CIVILIAN",
+                img: "crew.png",
+                desc: "اكتشف واخرج كل المافيا بهذه الجولة قبل ان يتم القضاء على جميع المواطنين.",
+                color: "var(--citizen-blue)",
+                glow: "rgba(0, 217, 255, 0.6)"
+            },
+            {
+                id: 'doctor',
+                name: "طبيب",
+                badge: "PROTECTOR",
+                img: "doc.png",
+                desc: "اكتشف واخرج كل المافيا بهذه الجولة. قم باختيار شخص لحمايته بعد اختيار المافيا.",
+                color: "var(--doctor-green)",
+                glow: "rgba(0, 255, 170, 0.6)"
+            },
+            {
+                id: 'mafia',
+                name: "المافيا",
+                badge: "KILLER",
+                img: "mafia.png",
+                desc: "القضاء على جميع المواطنين دون ان تكشف.",
+                color: "var(--mafia-red)",
+                glow: "rgba(255, 42, 75, 0.6)"
+            }
+        ];
+
+        let currentRoleIndex = 0;
+        let isFlipped = false;
+
+        const cardContainer = document.getElementById('cardContainer');
+        const roleImg = document.getElementById('roleImg');
+        const roleName = document.getElementById('roleName');
+        const roleDesc = document.getElementById('roleDesc');
+        const roleBadge = document.getElementById('roleBadge');
+        const cardBack = document.getElementById('cardBack');
+
+        function updateRoleData(role) {
+            roleImg.src = role.img;
+            roleName.innerText = role.name;
+            roleDesc.innerText = role.desc;
+            roleBadge.innerText = role.badge;
+            
+            // تطبيق الألوان والتوهج الخاص بالشخصية
+            cardBack.style.setProperty('--role-color', role.color);
+            cardBack.style.setProperty('--glow-color', role.glow);
+            roleBadge.style.borderColor = role.color;
+            roleBadge.style.color = role.color;
+        }
+
+        function toggleCard() {
+            isFlipped = !isFlipped;
+            if (isFlipped) {
+                cardContainer.classList.add('flipped');
+            } else {
+                cardContainer.classList.remove('flipped');
+            }
+        }
+
+        function shuffleAndReveal() {
+            if (isFlipped) {
+                cardContainer.classList.remove('flipped');
+                isFlipped = false;
+                
+                setTimeout(() => {
+                    selectRandomRole();
+                    cardContainer.classList.add('flipped');
+                    isFlipped = true;
+                }, 400);
+            } else {
+                selectRandomRole();
+                cardContainer.classList.add('flipped');
+                isFlipped = true;
+            }
+        }
+
+        function selectRandomRole() {
+            const randomIndex = Math.floor(Math.random() * roles.length);
+            currentRoleIndex = randomIndex;
+            updateRoleData(roles[randomIndex]);
+        }
+
+        function setRole(index, event) {
+            event.stopPropagation();
+            currentRoleIndex = index;
+            updateRoleData(roles[index]);
+            if (!isFlipped) {
+                cardContainer.classList.add('flipped');
+                isFlipped = true;
+            }
+        }
+
+        // إعداد الدور الافتراضي
+        updateRoleData(roles[0]);
+    </script>
+</body>
+</html>
